@@ -1,0 +1,36 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.9 # Match your Lambda runtime version
+    commands:
+      - echo Installing any necessary tools...
+      - pip install --upgrade awscli # Ensure latest AWS CLI is installed
+
+  pre_build:
+    commands:
+      - echo Preparing the build environment...
+      - mkdir -p build # Create a directory to package the Lambda functions
+
+  build:
+    commands:
+      - echo Packaging the Lambda functions...
+      # Package LF1 (index-photos)
+      - zip -r build/LF1-IndexPhotos.zip LF1-IndexPhotos.py
+      # Package LF2 (search-photos)
+      - zip -r build/LF2-SearchPhotos.zip LF2-SearchPhotos.py
+
+  post_build:
+    commands:
+      - echo Deploying Lambda functions...
+      # Update the "index-photos" Lambda function with the packaged code
+      - aws lambda update-function-code --function-name index-photos --zip-file fileb://build/LF1-IndexPhotos.zip
+      # Update the "search-photos" Lambda function with the packaged code
+      - aws lambda update-function-code --function-name search-photos --zip-file fileb://build/LF2-SearchPhotos.zip
+      - echo Deployment complete!
+
+artifacts:
+  files:
+    - build/LF1-IndexPhotos.zip
+    - build/LF2-SearchPhotos.zip
